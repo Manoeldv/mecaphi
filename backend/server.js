@@ -441,7 +441,7 @@ app.post('/api/search/vision', async (req, res) => {
 });
 
 // Fallback Route para React (SPA) - Sempre que uma rota não bater na API, enviar o front-end
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
