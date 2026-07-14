@@ -12,7 +12,7 @@ export default function Layout() {
       <Sidebar />
       <main className="main-content" style={{ position: 'relative' }}>
         <header className="mobile-header d-md-none" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', position: 'relative' }}>
-          <img src="/logo.png" alt="Mecaphi" style={{ height: '30px', mixBlendMode: 'multiply' }} />
+          <img src="/logo.png" alt="Mecaphi" style={{ height: '48px', mixBlendMode: 'multiply' }} />
           <button onClick={logout} className="btn" style={{ position: 'absolute', right: '1rem', padding: '0.5rem', color: 'var(--color-danger)' }}>
             <LogOut size={20} />
           </button>
