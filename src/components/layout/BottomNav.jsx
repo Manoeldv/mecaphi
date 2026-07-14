@@ -12,10 +12,10 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav notranslate" translate="no">
       <NavLink to="/" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem', gap: '0.25rem'}}>
         <Home size={24} />
-        <span>Início</span>
+        <span>Home</span>
       </NavLink>
       <NavLink to="/estoque" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem', gap: '0.25rem'}}>
         <Search size={24} />

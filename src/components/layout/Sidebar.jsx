@@ -4,7 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 
 export default function Sidebar() {
   const links = [
-    { to: '/', icon: <Home size={20} />, label: 'Dashboard' },
+    { to: '/', icon: <Home size={20} />, label: 'Home' },
     { to: '/estoque', icon: <Search size={20} />, label: 'Estoque / Busca' },
     { to: '/desmanche', icon: <Car size={20} />, label: 'Desmanche' },
     { to: '/pdv', icon: <ShoppingCart size={20} />, label: 'PDV / Vendas' },
