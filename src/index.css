@@ -242,6 +242,7 @@ input:focus, textarea:focus, select:focus {
 
 @media (max-width: 767px) {
   .sidebar { display: none; }
+  .main-content { padding-bottom: 5rem; }
 }
 
 @media (min-width: 768px) {

@@ -231,29 +231,33 @@ export default function Estoque() {
           {filteredEstoque.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Nenhuma peça encontrada com esses filtros.</div>
           ) : filteredEstoque.map(item => (
-            <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.75rem' }}>
-                <button onClick={() => { setItemToSell(item); setSellQuantity(1); }} style={{ color: 'var(--color-success)' }} title="Vender" disabled={item.qtd === 0}><ShoppingCart size={18} opacity={item.qtd === 0 ? 0.3 : 1} /></button>
-                <button onClick={() => setItemToView(item)} style={{ color: 'var(--color-text)' }} title="Ver Detalhes"><Eye size={18} /></button>
-                <button onClick={() => handleEdit(item)} style={{ color: 'var(--color-primary)' }} title="Editar"><Edit2 size={18} /></button>
-                <button onClick={() => setItemToDelete(item.id)} style={{ color: 'var(--color-danger)' }} title="Excluir"><Trash2 size={18} /></button>
-              </div>
-              <div style={{ width: '80px', height: '80px', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {item.foto ? (
-                  <img src={item.foto} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <ImageIcon size={24} color="var(--color-text-muted)" />
-                )}
-              </div>
-              <div style={{ flex: 1, paddingRight: '4rem' }}>
-                <h3 style={{ fontWeight: 600, fontSize: '0.875rem' }}>{item.nome}</h3>
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>SKU: {item.id} • OEM: {item.oem}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="badge badge-success">{item.condicao}</span>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Qtd: {item.qtd}</span>
+            <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ width: '80px', height: '80px', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {item.foto ? (
+                    <img src={item.foto} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <ImageIcon size={24} color="var(--color-text-muted)" />
+                  )}
                 </div>
-                <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem', color: item.color, backgroundColor: `${item.color}15`, padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, width: 'fit-content' }}>
-                  <MapPin size={14} /> Local: {item.local}
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontWeight: 600, fontSize: '0.875rem' }}>{item.nome}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>SKU: {item.id} • OEM: {item.oem}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="badge badge-success">{item.condicao}</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Qtd: {item.qtd}</span>
+                  </div>
+                  <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem', color: item.color, backgroundColor: `${item.color}15`, padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, width: 'fit-content' }}>
+                    <MapPin size={14} /> Local: {item.local}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+                <button onClick={() => { setItemToSell(item); setSellQuantity(1); }} className="btn" style={{ flex: 1, color: 'var(--color-success)', backgroundColor: 'rgba(34, 197, 94, 0.1)' }} title="Vender" disabled={item.qtd === 0}><ShoppingCart size={18} opacity={item.qtd === 0 ? 0.3 : 1} /> Vender</button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '0.5rem' }}>
+                  <button onClick={() => setItemToView(item)} className="btn" style={{ color: 'var(--color-text)', backgroundColor: 'var(--color-surface-hover)', padding: '0.5rem' }} title="Detalhes"><Eye size={18} /></button>
+                  <button onClick={() => handleEdit(item)} className="btn" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(30, 58, 138, 0.1)', padding: '0.5rem' }} title="Editar"><Edit2 size={18} /></button>
+                  <button onClick={() => setItemToDelete(item.id)} className="btn" style={{ color: 'var(--color-danger)', backgroundColor: 'rgba(220, 38, 38, 0.1)', padding: '0.5rem' }} title="Excluir"><Trash2 size={18} /></button>
                 </div>
               </div>
             </div>

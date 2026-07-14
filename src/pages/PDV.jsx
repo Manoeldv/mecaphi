@@ -10,13 +10,22 @@ export default function PDV() {
   const [busca, setBusca] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutData, setCheckoutData] = useState({ metodo: 'Dinheiro', cliente: '' });
-  const searchInputRef = useRef(null);
   
   // AI Visual Search States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiAnalysisStep, setAiAnalysisStep] = useState(0);
   const [aiResults, setAiResults] = useState(null);
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const searchInputRef = useRef(null);
 
   // Focus input automatically on mount
   useEffect(() => {
@@ -140,10 +149,10 @@ export default function PDV() {
         </div>
       </header>
 
-      <div style={{ flex: 1, display: 'flex', gap: '1.5rem', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.5rem', overflow: isMobile ? 'visible' : 'hidden' }}>
         
         {/* Esquerda: Busca e Resultados */}
-        <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
+        <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflow: isMobile ? 'visible' : 'hidden' }}>
           <div style={{ position: 'relative', display: 'flex', gap: '0.5rem' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} size={24} />
@@ -200,7 +209,7 @@ export default function PDV() {
         </div>
 
         {/* Direita: Carrinho */}
-        <div className="card" style={{ width: '400px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', borderLeft: '4px solid var(--color-primary)' }}>
+        <div className="card" style={{ width: isMobile ? '100%' : '400px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', borderLeft: isMobile ? 'none' : '4px solid var(--color-primary)', borderTop: isMobile ? '4px solid var(--color-primary)' : 'none' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)' }}>
             <ShoppingCart size={24} color="var(--color-primary)" /> Carrinho
           </h2>
