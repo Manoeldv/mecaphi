@@ -7,6 +7,13 @@ export default function Financeiro() {
   const [filterDate, setFilterDate] = useState('Todos'); // 'Hoje', '7Dias', 'Mes', 'Todos', 'Custom'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filtragem de Dados
   const filteredVendas = useMemo(() => {
@@ -52,7 +59,7 @@ export default function Financeiro() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '2rem' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', paddingBottom: '5rem' }}>
       
       {/* Botões de Ação Ocultos na Impressão */}
       <header className="no-print" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -108,11 +115,11 @@ export default function Financeiro() {
       </div>
 
       {/* Filtros */}
-      <div className="card no-print" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="card no-print" style={{ marginBottom: '2rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.5rem', alignItems: isMobile ? 'stretch' : 'center', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
           <Filter size={20} /> Filtros:
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
           <button className={`btn ${filterDate === 'Hoje' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilterDate('Hoje')}>Hoje</button>
           <button className={`btn ${filterDate === '7Dias' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilterDate('7Dias')}>Últimos 7 Dias</button>
           <button className={`btn ${filterDate === 'Mes' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilterDate('Mes')}>Este Mês</button>

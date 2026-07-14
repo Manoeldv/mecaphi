@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Search, Car, DollarSign } from 'lucide-react';
+import { Home, Search, Car, DollarSign, Shield } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 
 export default function BottomNav() {
+  const { currentUser } = useAppContext();
   const links = [
     { to: '/', icon: <Home size={24} />, label: 'Início' },
     { to: '/estoque', icon: <Search size={24} />, label: 'Buscar' },
@@ -30,6 +32,12 @@ export default function BottomNav() {
         <DollarSign size={24} />
         <span>Caixa</span>
       </NavLink>
+      {currentUser?.role === 'boss' && (
+        <NavLink to="/acesso" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem', gap: '0.25rem'}}>
+          <Shield size={24} />
+          <span>Acesso</span>
+        </NavLink>
+      )}
     </nav>
   );
 }
