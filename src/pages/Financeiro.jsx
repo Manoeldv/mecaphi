@@ -59,7 +59,7 @@ export default function Financeiro() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: isMobile ? '5rem' : '2rem' }}>
+    <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', paddingBottom: isMobile ? '5rem' : '2rem', overflowX: 'hidden' }}>
       
       {/* Botões de Ação Ocultos na Impressão */}
       <header className="no-print" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -84,7 +84,7 @@ export default function Financeiro() {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid md:grid-cols-3 gap-4" style={{ marginBottom: '2rem' }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ marginBottom: '2rem' }}>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderLeft: '4px solid var(--color-success)' }}>
           <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '50%' }}>
             <TrendingUp size={24} color="var(--color-success)" />
@@ -155,8 +155,8 @@ export default function Financeiro() {
             <Calendar size={20} color="var(--color-primary)" /> Histórico de Transações
           </h2>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
             <thead style={{ backgroundColor: 'var(--color-surface-hover)' }}>
               <tr>
                 <th style={{ padding: '1rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Transação</th>
