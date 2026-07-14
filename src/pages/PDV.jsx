@@ -130,6 +130,11 @@ export default function PDV() {
     setCheckoutData({ metodo: 'Dinheiro', cliente: '' });
   };
 
+  const filtradas = aiResults ? aiResults : catalogo.filter(item => 
+    item.nome.toLowerCase().includes(busca.toLowerCase()) || 
+    item.id.toLowerCase().includes(busca.toLowerCase())
+  );
+
   const total = cart.reduce((acc, item) => acc + ((parseFloat(item.preco) || 0) * (parseInt(item.qtd) || 0)), 0);
 
   return (
