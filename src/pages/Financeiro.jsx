@@ -59,7 +59,7 @@ export default function Financeiro() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', paddingBottom: '5rem' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: isMobile ? '5rem' : '2rem' }}>
       
       {/* Botões de Ação Ocultos na Impressão */}
       <header className="no-print" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>

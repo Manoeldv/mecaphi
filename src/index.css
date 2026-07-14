@@ -124,6 +124,8 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
   padding: 1.5rem;
   padding-bottom: calc(1.5rem + var(--bottom-nav-height));
 }
