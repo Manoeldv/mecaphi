@@ -138,7 +138,7 @@ export default function PDV() {
   const total = cart.reduce((acc, item) => acc + ((parseFloat(item.preco) || 0) * (parseInt(item.qtd) || 0)), 0);
 
   return (
-    <div style={{ height: 'calc(100vh - 3rem)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: isMobile ? 'auto' : 'calc(100vh - 3rem)', minHeight: 'calc(100vh - 3rem)', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? '6rem' : '0' }}>
       <header style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>Frente de Caixa (PDV)</h1>
@@ -183,19 +183,19 @@ export default function PDV() {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {filtradas.map(item => (
                   <li key={item.id} style={{ 
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                    padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' 
+                    display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', 
+                    padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', gap: isMobile ? '1rem' : '0'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-hover)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-hover)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {item.foto ? <img src={item.foto} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Search size={20} color="var(--color-text-muted)" />}
                       </div>
-                      <div>
-                        <h3 style={{ fontWeight: 600 }}>{item.nome}</h3>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ fontWeight: 600, fontSize: isMobile ? '1rem' : '1.125rem' }}>{item.nome}</h3>
                         <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{item.id} • {item.condicao} • Estoque: {item.qtd}</p>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: isMobile ? 'space-between' : 'flex-end', borderTop: isMobile ? '1px solid var(--color-border)' : 'none', paddingTop: isMobile ? '0.5rem' : '0' }}>
                       <span style={{ fontWeight: 700, fontSize: '1.125rem' }}>R$ {item.preco.toFixed(2)}</span>
                       <button className="btn btn-outline" onClick={() => handleAddToCart(item)}>
                         <Plus size={18} /> Add
@@ -225,10 +225,10 @@ export default function PDV() {
             ) : (
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {cart.map(item => (
-                  <li key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '0.75rem', borderBottom: '1px solid var(--color-border)' }}>
+                  <li key={item.id} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', paddingBottom: '0.75rem', borderBottom: '1px solid var(--color-border)', gap: isMobile ? '0.5rem' : '0' }}>
                     <div style={{ flex: 1 }}>
                       <h4 style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>{item.nome}</h4>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <input 
                           type="number" 
                           min="1" 
@@ -252,10 +252,10 @@ export default function PDV() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: isMobile ? 'center' : 'flex-end', justifyContent: isMobile ? 'space-between' : 'flex-start', gap: '0.5rem', marginTop: isMobile ? '0.5rem' : '0' }}>
                       <span style={{ fontWeight: 600 }}>R$ {((parseFloat(item.preco) || 0) * (parseInt(item.qtd) || 0)).toFixed(2)}</span>
-                      <button style={{ display: 'block', color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem', textAlign: 'right', width: '100%' }} onClick={() => setCart(cart.filter(i => i.id !== item.id))}>
-                        Remover
+                      <button className="btn" style={{ padding: '0.25rem', color: 'var(--color-danger)' }} onClick={() => setCart(cart.filter(i => i.id !== item.id))}>
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </li>
@@ -311,9 +311,9 @@ export default function PDV() {
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-            <button type="button" className="btn btn-outline" onClick={() => setIsCheckoutOpen(false)}>Voltar ao Carrinho</button>
-            <button type="submit" className="btn btn-success" style={{ backgroundColor: 'var(--color-success)', color: 'white' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+            <button type="button" className="btn btn-outline" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => setIsCheckoutOpen(false)}>Voltar ao Carrinho</button>
+            <button type="submit" className="btn btn-success" style={{ backgroundColor: 'var(--color-success)', color: 'white', width: isMobile ? '100%' : 'auto' }}>
               <CreditCard size={18} /> Confirmar Pagamento
             </button>
           </div>
