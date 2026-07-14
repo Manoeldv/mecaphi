@@ -5,7 +5,7 @@ import Modal from '../components/ui/Modal';
 import CameraCapture from '../components/ui/CameraCapture';
 
 export default function PDV() {
-  const { estoque, finalizarVenda, showToast } = useAppContext();
+  const { estoque, finalizarVenda, showToast, currentUser } = useAppContext();
   const [cart, setCart] = useState([]);
   const [busca, setBusca] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -148,7 +148,7 @@ export default function PDV() {
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Operador: João Silva</span>
+          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Operador: {currentUser?.username || 'Caixa'}</span>
           <br/>
           <span className="badge badge-success" style={{ marginTop: '0.25rem' }}>Caixa Aberto</span>
         </div>
