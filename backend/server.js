@@ -22,7 +22,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Servir arquivos estáticos do React em produção
 app.use(express.static(path.join(__dirname, '../dist')));
@@ -91,17 +92,18 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Senha incorreta' });
     }
     
-    // Atualizar status
+    // Atualizar status e registrar log (não bloqueia a resposta)
     user.isOnline = true;
     user.lastLogin = new Date();
-    await user.save();
-
-    // Registrar log
-    await Log.create({
-      usuario: user.username,
-      acao: 'Login',
-      detalhes: 'Entrou no sistema'
-    });
+    
+    Promise.all([
+      user.save(),
+      Log.create({
+        usuario: user.username,
+        acao: 'Login',
+        detalhes: 'Entrou no sistema'
+      })
+    ]).catch(err => console.error('Erro ao atualizar log/status de login:', err));
     
     res.json({
       id: user._id,

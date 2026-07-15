@@ -463,6 +463,41 @@ export default function Estoque() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Nome da Peça</label>
                 <input type="text" value={editingItem.nome} onChange={e => setEditingItem({...editingItem, nome: e.target.value})} required />
               </div>
+              
+              {/* Edição de Foto */}
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Foto da Peça</label>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', backgroundColor: 'var(--color-surface-hover)', padding: '0.75rem', borderRadius: 'var(--radius-md)' }}>
+                  {editingItem.foto ? (
+                    <div style={{ position: 'relative', width: '64px', height: '64px' }}>
+                      <img src={editingItem.foto} alt="Peça" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                      <button type="button" onClick={() => setEditingItem({...editingItem, foto: null})} style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--color-danger)', color: 'white', borderRadius: '50%', padding: '0.25rem', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Apagar Foto">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ width: '64px', height: '64px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ImageIcon size={24} color="var(--color-text-muted)" />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Para trocar, escolha uma nova imagem:</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => setEditingItem({...editingItem, foto: reader.result});
+                          reader.readAsDataURL(file);
+                        }
+                      }} 
+                      style={{ fontSize: '0.875rem', width: '100%', padding: '0' }}
+                    />
+                  </div>
+                </div>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>OEM</label>
