@@ -26,6 +26,7 @@ export default function Estoque() {
 
   // AI Visual Search States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isEditCameraOpen, setIsEditCameraOpen] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiAnalysisStep, setAiAnalysisStep] = useState(0);
 
@@ -482,19 +483,30 @@ export default function Estoque() {
                   )}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Para trocar, escolha uma nova imagem:</span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setEditingItem({...editingItem, foto: reader.result});
-                          reader.readAsDataURL(file);
-                        }
-                      }} 
-                      style={{ fontSize: '0.875rem', width: '100%', padding: '0' }}
-                    />
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setEditingItem({...editingItem, foto: reader.result});
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                        style={{ fontSize: '0.875rem', flex: 1, padding: '0' }}
+                      />
+                      <button 
+                        type="button" 
+                        className="btn btn-outline" 
+                        style={{ padding: '0.4rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}
+                        onClick={() => setIsEditCameraOpen(true)}
+                        title="Tirar Foto"
+                      >
+                        <Camera size={14} /> Câmera
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -573,6 +585,15 @@ export default function Estoque() {
         isOpen={isNovaPecaModalOpen} 
         onClose={() => setIsNovaPecaModalOpen(false)} 
       />
+
+      {/* Busca Visual Câmera para Edição */}
+      {editingItem && (
+        <CameraCapture 
+          isOpen={isEditCameraOpen} 
+          onClose={() => setIsEditCameraOpen(false)} 
+          onCapture={(photoData) => setEditingItem({...editingItem, foto: photoData})}
+        />
+      )}
 
     </div>
   );
