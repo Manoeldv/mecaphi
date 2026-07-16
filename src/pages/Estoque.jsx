@@ -527,7 +527,40 @@ export default function Estoque() {
                   <input type="number" step="0.01" value={editingItem.preco || ''} onChange={e => setEditingItem({...editingItem, preco: parseFloat(e.target.value)})} min="0" />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Categoria</label>
+                  <select value={editingItem.categoria || 'Não categorizado'} onChange={e => setEditingItem({...editingItem, categoria: e.target.value})}>
+                    <option>Não categorizado</option>
+                    <option>Acabamento Externo</option>
+                    <option>Acabamento Interno</option>
+                    <option>Acessórios</option>
+                    <option>Alimentação de Combustível</option>
+                    <option>Ar Condicionado e Ventilação</option>
+                    <option>Arrefecimento</option>
+                    <option>Bancos e Assentos</option>
+                    <option>Cabos</option>
+                    <option>Câmbio e Embreagem</option>
+                    <option>Carroceria e Lataria</option>
+                    <option>Chassi e Estrutura</option>
+                    <option>Cintos e Segurança</option>
+                    <option>Direção</option>
+                    <option>Elétrica e Sensores</option>
+                    <option>Escapamento</option>
+                    <option>Faróis e Lanternas</option>
+                    <option>Filtros</option>
+                    <option>Freios</option>
+                    <option>Ignição</option>
+                    <option>Injeção Eletrônica</option>
+                    <option>Motor e Componentes Internos</option>
+                    <option>Painel e Instrumentos</option>
+                    <option>Pneus e Rodas</option>
+                    <option>Som e Multimídia</option>
+                    <option>Suspensão e Amortecedores</option>
+                    <option>Transmissão e Eixo</option>
+                    <option>Vidros e Máquinas de Vidro</option>
+                  </select>
+                </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Condição</label>
                   <select value={editingItem.condicao} onChange={e => setEditingItem({...editingItem, condicao: e.target.value})}>

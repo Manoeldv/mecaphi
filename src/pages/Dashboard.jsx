@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const totalPecas = estoque.reduce((acc, p) => acc + p.qtd, 0);
+  const totalValorEstoque = estoque.reduce((acc, p) => acc + (p.qtd * (p.preco || 0)), 0);
   const baixoEstoque = estoque.filter(p => p.qtd === 0).length;
 
   // Prepare chart data (Last 7 Days)
@@ -76,7 +77,7 @@ export default function Dashboard() {
 
       {/* Metrics Cards */}
       <div className="grid gap-6 md:grid-cols-3" style={{ marginBottom: '2rem' }}>
-        <MetricCard loading={loading} title="Total de Peças Físicas" value={totalPecas} icon={<Package size={24} color="var(--color-primary)" />} />
+        <MetricCard loading={loading} title="Total de Peças Físicas" value={totalPecas} subtitle={`R$ ${totalValorEstoque.toFixed(2)} em estoque`} icon={<Package size={24} color="var(--color-primary)" />} />
         <MetricCard loading={loading} title="Valor em Caixa" value={`R$ ${metricas.valorCaixa.toFixed(2)}`} icon={<DollarSign size={24} color="var(--color-success)" />} />
         <Link to="/pedidos" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
           <MetricCard loading={loading} title="Peças Esgotadas" value={`${baixoEstoque} itens`} icon={<AlertTriangle size={24} color={baixoEstoque > 0 ? "var(--color-danger)" : "var(--color-text-muted)"} />} highlight={baixoEstoque > 0} hoverable={true} />
@@ -132,7 +133,7 @@ export default function Dashboard() {
   );
 }
 
-function MetricCard({ title, value, icon, loading, highlight, hoverable }) {
+function MetricCard({ title, value, subtitle, icon, loading, highlight, hoverable }) {
   return (
     <div className={`card ${hoverable ? 'hover-scale' : ''}`} style={{ 
       display: 'flex', 
@@ -155,9 +156,16 @@ function MetricCard({ title, value, icon, loading, highlight, hoverable }) {
         {loading ? (
           <Skeleton style={{ height: '28px', width: '60%', marginTop: '0.25rem' }} />
         ) : (
-          <p style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem', color: highlight ? 'var(--color-danger)' : 'var(--color-text)' }}>
-            {value}
-          </p>
+          <>
+            <p style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem', color: highlight ? 'var(--color-danger)' : 'var(--color-text)' }}>
+              {value}
+            </p>
+            {subtitle && (
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '0.25rem', fontWeight: 500 }}>
+                {subtitle}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

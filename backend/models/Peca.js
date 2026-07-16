@@ -7,8 +7,10 @@ const pecaSchema = new mongoose.Schema({
   preco: { type: Number, required: true, default: 0 },
   local: { type: String, default: 'Não definido' },
   status: { type: String, default: 'Em estoque' },
+  categoria: { type: String, default: 'Não categorizado' },
+  condicao: { type: String, default: 'Usada (Bom Estado)' },
   foto: { type: String, default: null }, // Base64 or URL
-  veiculoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Veiculo', default: null }
+  veiculoId: { type: String, default: null }
 }, { timestamps: true });
 
 export default mongoose.model('Peca', pecaSchema);
