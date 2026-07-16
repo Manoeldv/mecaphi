@@ -357,6 +357,9 @@ export default function Estoque() {
             <div style={{ backgroundColor: 'var(--color-surface-hover)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
               <h3 style={{ fontWeight: 600, fontSize: '1rem' }}>{itemToSell.nome}</h3>
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Estoque Disponível: <strong>{itemToSell.qtd}</strong></p>
+              <p style={{ color: 'var(--color-success)', fontSize: '1.25rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
+                R$ {itemToSell.preco ? Number(itemToSell.preco).toFixed(2) : '0.00'}
+              </p>
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Quantidade para Venda</label>
@@ -510,7 +513,7 @@ export default function Estoque() {
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>OEM</label>
                   <input type="text" value={editingItem.oem} onChange={e => setEditingItem({...editingItem, oem: e.target.value})} />
@@ -518,6 +521,10 @@ export default function Estoque() {
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Quantidade</label>
                   <input type="number" value={editingItem.qtd} onChange={e => setEditingItem({...editingItem, qtd: parseInt(e.target.value)})} required min="0" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Preço (R$)</label>
+                  <input type="number" step="0.01" value={editingItem.preco || ''} onChange={e => setEditingItem({...editingItem, preco: parseFloat(e.target.value)})} min="0" />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
