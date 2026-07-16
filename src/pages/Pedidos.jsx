@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PackageX, ShoppingCart, Plus, Trash2, Printer, ClipboardList, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
@@ -13,8 +13,21 @@ export default function Pedidos() {
     : [...estoque].sort((a, b) => a.qtd - b.qtd);
   
   // Lista de itens que vão entrar no pedido de compra
-  const [pedido, setPedido] = useState([]);
-  const [fornecedor, setFornecedor] = useState('');
+  const [pedido, setPedido] = useState(() => {
+    const saved = localStorage.getItem('pedidoAtual');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [fornecedor, setFornecedor] = useState(() => {
+    return localStorage.getItem('pedidoFornecedor') || '';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pedidoAtual', JSON.stringify(pedido));
+  }, [pedido]);
+
+  useEffect(() => {
+    localStorage.setItem('pedidoFornecedor', fornecedor);
+  }, [fornecedor]);
   
   // Item Avulso
   const [avulsoNome, setAvulsoNome] = useState('');
