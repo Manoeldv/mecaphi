@@ -5,11 +5,10 @@ import Modal from '../components/ui/Modal';
 import CameraCapture from '../components/ui/CameraCapture';
 
 export default function PDV() {
-  const { estoque, finalizarVenda, showToast, currentUser } = useAppContext();
-  const [cart, setCart] = useState([]);
+  const { estoque, finalizarVenda, showToast, currentUser, pdvCart: cart, setPdvCart: setCart, addToPdvCart } = useAppContext();
   const [busca, setBusca] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [checkoutData, setCheckoutData] = useState({ metodo: 'Dinheiro', cliente: '' });
+  const [checkoutData, setCheckoutData] = useState({ metodo: 'Dinheiro', cliente: '', desconto: 0 });
   
   // AI Visual Search States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -39,12 +38,7 @@ export default function PDV() {
   }));
 
   const handleAddToCart = (item) => {
-    const exists = cart.find(i => i.id === item.id);
-    if (exists) {
-      setCart(cart.map(i => i.id === item.id ? { ...i, qtd: i.qtd + 1 } : i));
-    } else {
-      setCart([...cart, { ...item, qtd: 1 }]);
-    }
+    addToPdvCart(item, 1);
     setBusca(''); // Clear search
     // Manter o foco na busca após adicionar um item novo (facilita bipar vários itens rápidos)
     setTimeout(() => {
@@ -124,10 +118,10 @@ export default function PDV() {
 
   const confirmCheckout = (e) => {
     e.preventDefault();
-    finalizarVenda(cart, { metodoPagamento: checkoutData.metodo, cliente: checkoutData.cliente });
+    finalizarVenda(cart, { metodoPagamento: checkoutData.metodo, cliente: checkoutData.cliente, desconto: checkoutData.desconto });
     setCart([]);
     setIsCheckoutOpen(false);
-    setCheckoutData({ metodo: 'Dinheiro', cliente: '' });
+    setCheckoutData({ metodo: 'Dinheiro', cliente: '', desconto: 0 });
   };
 
   const filtradas = aiResults ? aiResults : catalogo.filter(item => 
@@ -135,7 +129,9 @@ export default function PDV() {
     item.id.toLowerCase().includes(busca.toLowerCase())
   );
 
-  const total = cart.reduce((acc, item) => acc + ((parseFloat(item.preco) || 0) * (parseInt(item.qtd) || 0)), 0);
+  const subtotal = cart.reduce((acc, item) => acc + ((parseFloat(item.preco) || 0) * (parseInt(item.qtd) || 0)), 0);
+  const totalDesc = subtotal * (1 - ((parseFloat(checkoutData.desconto) || 0) / 100));
+  const total = isCheckoutOpen ? totalDesc : subtotal;
 
   return (
     <div style={{ height: isMobile ? 'auto' : 'calc(100vh - 3rem)', minHeight: 'calc(100vh - 3rem)', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? '6rem' : '0' }}>
@@ -283,22 +279,40 @@ export default function PDV() {
           
           <div style={{ backgroundColor: 'var(--color-surface-hover)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Valor Total a Pagar</span>
+            {checkoutData.desconto > 0 && (
+              <span style={{ display: 'block', fontSize: '1rem', textDecoration: 'line-through', color: 'var(--color-text-muted)' }}>R$ {subtotal.toFixed(2)}</span>
+            )}
             <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-success)' }}>R$ {total.toFixed(2)}</span>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Forma de Pagamento</label>
-            <select 
-              value={checkoutData.metodo} 
-              onChange={e => setCheckoutData({...checkoutData, metodo: e.target.value})}
-              style={{ fontSize: '1.125rem', padding: '0.75rem' }}
-            >
-              <option>Dinheiro</option>
-              <option>PIX</option>
-              <option>Cartão de Crédito</option>
-              <option>Cartão de Débito</option>
-              <option>Transferência Bancária</option>
-            </select>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Forma de Pagamento</label>
+              <select 
+                value={checkoutData.metodo} 
+                onChange={e => setCheckoutData({...checkoutData, metodo: e.target.value})}
+                style={{ fontSize: '1rem', padding: '0.75rem', width: '100%' }}
+              >
+                <option>Dinheiro</option>
+                <option>PIX</option>
+                <option>Cartão de Crédito</option>
+                <option>Cartão de Débito</option>
+                <option>Transferência Bancária</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Desconto (%)</label>
+              <input 
+                type="number" 
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="0"
+                value={checkoutData.desconto} 
+                onChange={e => setCheckoutData({...checkoutData, desconto: parseFloat(e.target.value) || 0})}
+                style={{ fontSize: '1rem', padding: '0.75rem', width: '100%' }}
+              />
+            </div>
           </div>
 
           <div>

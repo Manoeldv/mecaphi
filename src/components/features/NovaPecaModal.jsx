@@ -132,6 +132,7 @@ export default function NovaPecaModal({ isOpen, onClose }) {
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Categoria</label>
               <select value={formData.categoria} onChange={e => setFormData({...formData, categoria: e.target.value})}>
+                <option>Não definida</option>
                 <option>Acabamento Externo</option>
                 <option>Acabamento Interno</option>
                 <option>Acessórios</option>

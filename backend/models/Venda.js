@@ -10,6 +10,7 @@ const vendaSchema = new mongoose.Schema({
     subtotal: { type: Number }
   }],
   total: { type: Number, required: true },
+  desconto: { type: Number, default: 0 },
   metodo: { type: String, default: 'Dinheiro' },
   cliente: { type: String, default: '' },
 }, { timestamps: true });

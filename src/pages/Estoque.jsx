@@ -4,9 +4,11 @@ import { useAppContext } from '../context/AppContext';
 import Modal from '../components/ui/Modal';
 import CameraCapture from '../components/ui/CameraCapture';
 import NovaPecaModal from '../components/features/NovaPecaModal';
+import { useNavigate } from 'react-router-dom';
 
 export default function Estoque() {
-  const { estoque, updatePeca, deletePeca, showToast, finalizarVenda } = useAppContext();
+  const { estoque, updatePeca, deletePeca, showToast, addToPdvCart } = useAppContext();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [aiResults, setAiResults] = useState(null);
@@ -136,17 +138,12 @@ export default function Estoque() {
     }
     if (sellQuantity <= 0) return;
 
-    // Simulate a cart array for the context function
-    const pseudoCart = [{
-      ...itemToSell,
-      preco: itemToSell.preco || (Math.random() * 500 + 50), // Mock price if not exists
-      qtd: sellQuantity
-    }];
-
-    finalizarVenda(pseudoCart, { metodoPagamento: sellMethod });
+    addToPdvCart(itemToSell, sellQuantity);
     setItemToSell(null);
     setSellQuantity(1);
-    setSellMethod('Dinheiro');
+    
+    showToast('Peça adicionada ao carrinho!');
+    navigate('/pdv');
   };
 
   const handleEdit = (item) => {
@@ -370,26 +367,13 @@ export default function Estoque() {
                 value={sellQuantity} 
                 onChange={e => setSellQuantity(parseInt(e.target.value) || 1)} 
                 required
-                style={{ fontSize: '1.25rem', padding: '0.75rem' }}
+                style={{ fontSize: '1.25rem', padding: '0.75rem', width: '100%' }}
               />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Forma de Pagamento</label>
-              <select 
-                value={sellMethod} 
-                onChange={e => setSellMethod(e.target.value)}
-                style={{ padding: '0.75rem' }}
-              >
-                <option>Dinheiro</option>
-                <option>PIX</option>
-                <option>Cartão de Crédito</option>
-                <option>Cartão de Débito</option>
-              </select>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
               <button type="button" className="btn btn-outline" onClick={() => setItemToSell(null)}>Cancelar</button>
               <button type="submit" className="btn btn-success" style={{ backgroundColor: 'var(--color-success)', color: 'white' }}>
-                <ShoppingCart size={18} /> Confirmar Venda
+                <ShoppingCart size={18} /> Ir para o Carrinho
               </button>
             </div>
           </form>

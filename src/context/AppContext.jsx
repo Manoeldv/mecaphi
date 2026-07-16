@@ -11,6 +11,17 @@ export function AppProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [pdvCart, setPdvCart] = useState([]); // Shared cart between PDV and Estoque
+
+  const addToPdvCart = (item, qtd = 1) => {
+    setPdvCart(prev => {
+      const exists = prev.find(i => i.id === item.id);
+      if (exists) {
+        return prev.map(i => i.id === item.id ? { ...i, qtd: i.qtd + qtd } : i);
+      }
+      return [...prev, { ...item, qtd }];
+    });
+  };
 
   // Load Initial Data from API
   useEffect(() => {
@@ -156,12 +167,15 @@ export function AppProvider({ children }) {
   };
 
   const finalizarVenda = async (carrinho, detalhes = {}) => {
-    const totalVenda = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+    const subtotal = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+    const desconto = parseFloat(detalhes.desconto) || 0;
+    const totalVenda = subtotal * (1 - (desconto / 100));
     
     const novoRecibo = {
       data: new Date().toISOString(),
       itens: carrinho.map(item => ({ id: item.id, nome: item.nome, qtd: item.qtd, preco: item.preco, subtotal: item.preco * item.qtd })),
       total: totalVenda,
+      desconto: desconto,
       metodo: detalhes.metodoPagamento || 'Não especificado',
       cliente: detalhes.cliente || 'Consumidor Final',
       obs: detalhes.observacao || ''
@@ -306,6 +320,7 @@ export function AppProvider({ children }) {
       veiculos, addVeiculo,
       metricas, finalizarVenda, deleteVenda,
       vendasHistorico, setVendasHistorico,
+      pdvCart, setPdvCart, addToPdvCart,
       toastMessage, showToast
     }}>
       {children}
