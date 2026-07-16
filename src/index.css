@@ -284,24 +284,50 @@ input:focus, textarea:focus, select:focus {
 }
 
 @media print {
+  html, body, #root, .app-container, .main-content {
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
+  }
+  
+  * {
+    overflow: visible !important;
+  }
+
   body {
     background-color: white;
     color: black;
   }
+  
   .no-print, .sidebar, .bottom-nav, .top-header {
     display: none !important;
   }
+  
   .print-only {
     display: block !important;
   }
+  
   .main-content {
     margin: 0 !important;
     padding: 0 !important;
   }
+  
   .card {
     box-shadow: none !important;
-    border: 1px solid #ccc !important;
-    margin-bottom: 20px !important;
-    page-break-inside: avoid;
+    border: none !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    page-break-inside: auto !important;
+  }
+  
+  table, tr, td, th, tbody, thead, tfoot {
+    page-break-inside: auto !important;
+  }
+  
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
   }
 }
