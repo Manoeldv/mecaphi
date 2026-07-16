@@ -200,6 +200,33 @@ export function AppProvider({ children }) {
     }
   };
 
+  const deleteVenda = async (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta venda? O estoque dos itens será restaurado.')) return;
+    try {
+      const res = await fetch(`/api/vendas/${id}`, { method: 'DELETE', headers: { 'X-Username': currentUser?.username } });
+      if (res.ok) {
+        setVendasHistorico(prev => {
+          const updated = prev.filter(v => (v._id || v.id) !== id);
+          const hoje = new Date().toISOString().split('T')[0];
+          const vendasHoje = updated.filter(v => v.data.startsWith(hoje)).length;
+          const valorCaixa = updated.reduce((acc, v) => acc + v.total, 0);
+          setMetricas({ valorCaixa, vendasHoje });
+          return updated;
+        });
+        
+        // Atualiza o estoque localmente para refletir o estorno
+        fetch('/api/pecas').then(r => r.json()).then(data => setEstoque(data)).catch(console.error);
+
+        showToast('Venda excluída com sucesso e estoque restaurado.');
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Erro ao excluir venda.', 'error');
+      }
+    } catch (e) {
+      showToast('Erro de conexão ao excluir venda.', 'error');
+    }
+  };
+
   const fetchUsuarios = async () => {
     try {
       const res = await fetch('/api/usuarios');
@@ -277,7 +304,7 @@ export function AppProvider({ children }) {
       logs, fetchLogs,
       estoque, addPeca, updatePeca, deletePeca,
       veiculos, addVeiculo,
-      metricas, finalizarVenda,
+      metricas, finalizarVenda, deleteVenda,
       vendasHistorico, setVendasHistorico,
       toastMessage, showToast
     }}>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, Printer, Filter, TrendingUp, ShoppingBag, Calendar } from 'lucide-react';
+import { DollarSign, Printer, Filter, TrendingUp, ShoppingBag, Calendar, Trash2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function Financeiro() {
-  const { vendasHistorico } = useAppContext();
+  const { vendasHistorico, deleteVenda } = useAppContext();
   const [filterDate, setFilterDate] = useState('Todos'); // 'Hoje', '7Dias', 'Mes', 'Todos', 'Custom'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -164,12 +164,13 @@ export default function Financeiro() {
                 <th style={{ padding: '1rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Itens Vendidos</th>
                 <th style={{ padding: '1rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Forma Pagamento</th>
                 <th style={{ padding: '1rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>Total (R$)</th>
+                <th className="no-print" style={{ padding: '1rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {filteredVendas.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                  <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                     Nenhuma venda registrada neste período.
                   </td>
                 </tr>
@@ -188,6 +189,11 @@ export default function Financeiro() {
                     <td style={{ padding: '1rem' }}><span className="badge badge-success">{venda.metodo}</span></td>
                     <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700, color: 'var(--color-success)' }}>
                       R$ {venda.total.toFixed(2)}
+                    </td>
+                    <td className="no-print" style={{ padding: '1rem', textAlign: 'center' }}>
+                      <button onClick={() => deleteVenda(venda._id || venda.id)} style={{ color: 'var(--color-danger)', backgroundColor: 'rgba(220, 38, 38, 0.1)', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: 'none', cursor: 'pointer' }} title="Excluir Venda">
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))

@@ -306,6 +306,37 @@ app.post('/api/vendas', async (req, res) => {
   }
 });
 
+app.delete('/api/vendas/:id', async (req, res) => {
+  try {
+    const venda = await Venda.findById(req.params.id);
+    if (!venda) return res.status(404).json({ error: 'Venda não encontrada' });
+
+    // Restaurar o estoque
+    for (const item of venda.itens) {
+      if (item.id && mongoose.Types.ObjectId.isValid(item.id)) {
+        await Peca.findByIdAndUpdate(item.id, {
+          $inc: { qtd: item.qtd }
+        });
+      }
+    }
+
+    await Venda.findByIdAndDelete(req.params.id);
+
+    const username = req.headers['x-username'];
+    if (username) {
+      await Log.create({
+        usuario: username,
+        acao: 'Exclusão de Venda',
+        detalhes: `Excluiu a venda de R$ ${venda.total.toFixed(2)}`
+      });
+    }
+
+    res.json({ message: 'Venda excluída e estoque restaurado.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- ROTAS USUARIOS ---
 app.get('/api/usuarios', async (req, res) => {
   try {
