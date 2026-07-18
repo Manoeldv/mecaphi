@@ -322,6 +322,20 @@ input:focus, textarea:focus, select:focus {
     page-break-inside: auto !important;
   }
   
+  .grid {
+    display: block !important;
+  }
+
+  .table-responsive {
+    overflow-x: visible !important;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+  }
+
   table, tr, td, th, tbody, thead, tfoot {
     page-break-inside: auto !important;
   }
@@ -329,5 +343,11 @@ input:focus, textarea:focus, select:focus {
   tr {
     page-break-inside: avoid !important;
     page-break-after: auto !important;
+  }
+
+  th, td {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
   }
 }

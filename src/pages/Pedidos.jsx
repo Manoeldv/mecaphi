@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PackageX, ShoppingCart, Plus, Trash2, Printer, ClipboardList, Search } from 'lucide-react';
+import { PackageX, ShoppingCart, Plus, Minus, Trash2, Printer, ClipboardList, Search, History, Save, Edit, FileText, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function Pedidos() {
@@ -21,6 +21,15 @@ export default function Pedidos() {
     return localStorage.getItem('pedidoFornecedor') || '';
   });
 
+  // Novos estados para histórico de pedidos
+  const [pedidoAtivoId, setPedidoAtivoId] = useState(() => localStorage.getItem('pedidoAtivoId') || null);
+  const [isSaved, setIsSaved] = useState(() => localStorage.getItem('pedidoIsSaved') === 'true');
+  const [pedidosSalvos, setPedidosSalvos] = useState(() => {
+    const saved = localStorage.getItem('pedidosSalvos');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showHistorico, setShowHistorico] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('pedidoAtual', JSON.stringify(pedido));
   }, [pedido]);
@@ -28,26 +37,44 @@ export default function Pedidos() {
   useEffect(() => {
     localStorage.setItem('pedidoFornecedor', fornecedor);
   }, [fornecedor]);
+
+  useEffect(() => {
+    localStorage.setItem('pedidoAtivoId', pedidoAtivoId || '');
+  }, [pedidoAtivoId]);
+
+  useEffect(() => {
+    localStorage.setItem('pedidoIsSaved', isSaved);
+  }, [isSaved]);
+
+  useEffect(() => {
+    localStorage.setItem('pedidosSalvos', JSON.stringify(pedidosSalvos));
+  }, [pedidosSalvos]);
   
   // Item Avulso
   const [avulsoNome, setAvulsoNome] = useState('');
   const [avulsoQtd, setAvulsoQtd] = useState(1);
 
   const addToPedido = (peca) => {
+    if (isSaved) return;
     if (!pedido.find(p => p.id === peca.id)) {
       setPedido([...pedido, { ...peca, qtdPedida: 5 }]); // default 5 units
     }
   };
 
   const removeFromPedido = (id) => {
+    if (isSaved) return;
     setPedido(pedido.filter(p => p.id !== id));
   };
 
   const updateQtd = (id, qtd) => {
-    setPedido(pedido.map(p => p.id === id ? { ...p, qtdPedida: parseInt(qtd) || 1 } : p));
+    if (isSaved) return;
+    const parsed = parseInt(qtd);
+    if (isNaN(parsed) || parsed < 1) return;
+    setPedido(pedido.map(p => p.id === id ? { ...p, qtdPedida: parsed } : p));
   };
 
   const addAllEsgotados = () => {
+    if (isSaved) return;
     const esgotados = catalogoFiltrado.filter(e => e.qtd === 0);
     const novos = esgotados.filter(e => !pedido.find(p => p.id === e.id)).map(e => ({ ...e, qtdPedida: 5 }));
     setPedido([...pedido, ...novos]);
@@ -55,7 +82,7 @@ export default function Pedidos() {
 
   const handleAddAvulso = (e) => {
     e.preventDefault();
-    if (!avulsoNome.trim()) return;
+    if (isSaved || !avulsoNome.trim()) return;
     
     const novoItem = {
       id: `AV-${Date.now().toString().slice(-5)}`,
@@ -69,6 +96,64 @@ export default function Pedidos() {
     setAvulsoQtd(1);
   };
 
+  // Ações do Pedido
+  const salvarEContinuar = () => {
+    if (pedido.length === 0) return;
+    
+    let idParaSalvar = pedidoAtivoId;
+    if (!idParaSalvar) {
+      idParaSalvar = `PED-${Date.now().toString().slice(-6)}`;
+      setPedidoAtivoId(idParaSalvar);
+    }
+
+    const novoPedidoObj = {
+      id: idParaSalvar,
+      data: new Date().toISOString(),
+      fornecedor,
+      itens: pedido
+    };
+
+    setPedidosSalvos(prev => {
+      const existe = prev.find(p => p.id === idParaSalvar);
+      if (existe) {
+        return prev.map(p => p.id === idParaSalvar ? novoPedidoObj : p);
+      }
+      return [novoPedidoObj, ...prev];
+    });
+
+    setIsSaved(true);
+  };
+
+  const editarPedido = () => {
+    setIsSaved(false);
+  };
+
+  const excluirPedidoAtual = () => {
+    if (!pedidoAtivoId) {
+       novoPedido();
+       return;
+    }
+    if (window.confirm("Deseja realmente excluir este pedido salvo?")) {
+      setPedidosSalvos(prev => prev.filter(p => p.id !== pedidoAtivoId));
+      novoPedido();
+    }
+  };
+
+  const novoPedido = () => {
+    setPedidoAtivoId(null);
+    setIsSaved(false);
+    setPedido([]);
+    setFornecedor('');
+  };
+
+  const carregarPedido = (ped) => {
+    setPedidoAtivoId(ped.id);
+    setFornecedor(ped.fornecedor || '');
+    setPedido(ped.itens || []);
+    setIsSaved(true);
+    setShowHistorico(false);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -76,6 +161,34 @@ export default function Pedidos() {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '2rem' }}>
       
+      {/* Modal de Histórico */}
+      {showHistorico && (
+        <div className="no-print" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <div className="card" style={{width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
+              <h2 style={{fontSize: '1.25rem', fontWeight: 'bold'}}>Histórico de Pedidos</h2>
+              <button onClick={() => setShowHistorico(false)} className="btn btn-outline" style={{padding: '0.5rem'}}><X size={20} /></button>
+            </div>
+            {pedidosSalvos.length === 0 ? (
+              <p style={{color: 'var(--color-text-muted)'}}>Nenhum pedido salvo.</p>
+            ) : (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
+                {pedidosSalvos.map(ped => (
+                  <div key={ped.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface-hover)'}}>
+                     <div>
+                       <div style={{fontWeight: 'bold'}}>ID: {ped.id}</div>
+                       <div style={{fontSize: '0.875rem', color: 'var(--color-text-muted)'}}>{new Date(ped.data).toLocaleString('pt-BR')} | Fornecedor: {ped.fornecedor || 'Nenhum'}</div>
+                       <div style={{fontSize: '0.875rem', color: 'var(--color-text-muted)'}}>Itens: {ped.itens?.length || 0}</div>
+                     </div>
+                     <button className="btn btn-primary" onClick={() => carregarPedido(ped)}>Abrir</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Cabeçalho */}
       <header className="no-print" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -85,9 +198,14 @@ export default function Pedidos() {
           <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Gere orçamentos e pedidos de compra para suas peças esgotadas.</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn btn-primary" onClick={handlePrint} disabled={pedido.length === 0}>
-            <Printer size={20} /> Gerar PDF do Pedido
+          <button className="btn btn-outline" onClick={() => setShowHistorico(true)}>
+            <History size={20} /> Pedidos Salvos
           </button>
+          {!isSaved && (
+             <button className="btn btn-primary" onClick={salvarEContinuar} disabled={pedido.length === 0}>
+               <Save size={20} /> Salvar e Continuar
+             </button>
+          )}
         </div>
       </header>
 
@@ -100,7 +218,7 @@ export default function Pedidos() {
             <strong>Fornecedor/Observação:</strong> {fornecedor || 'A definir'}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <strong>Total de Itens:</strong> {pedido.length}<br/>
+            <strong>ID do Pedido:</strong> {pedidoAtivoId || 'Rascunho'}<br/>
             <strong>Total de Peças:</strong> {pedido.reduce((acc, p) => acc + p.qtdPedida, 0)} un.
           </div>
         </div>
@@ -109,7 +227,7 @@ export default function Pedidos() {
       <div className="grid md:grid-cols-2 gap-6">
         
         {/* Lado Esquerdo: Peças Esgotadas (Oculto na impressão) */}
-        <div className="card no-print" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card no-print" style={{ display: 'flex', flexDirection: 'column', opacity: isSaved ? 0.5 : 1, pointerEvents: isSaved ? 'none' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <PackageX size={20} color="var(--color-danger)" /> Catálogo
@@ -146,7 +264,7 @@ export default function Pedidos() {
                 return (
                   <li key={peca.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)', borderLeft: peca.qtd === 0 ? '4px solid var(--color-danger)' : '4px solid transparent' }}>
                     <div>
-                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', wordBreak: 'break-word', flexWrap: 'wrap' }}>
                         {peca.nome}
                         {peca.qtd === 0 && <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-danger)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>ESGOTADO</span>}
                       </div>
@@ -170,8 +288,12 @@ export default function Pedidos() {
 
         {/* Lado Direito: Lista do Pedido Atual */}
         <div className="card print-expand" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h2 className="no-print" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShoppingCart size={20} color="var(--color-primary)" /> Lista de Encomenda
+          <h2 className="no-print" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShoppingCart size={20} color="var(--color-primary)" /> 
+              {pedidoAtivoId ? `Pedido ${pedidoAtivoId}` : 'Novo Pedido'}
+            </span>
+            {isSaved && <span style={{fontSize: '0.75rem', backgroundColor: 'var(--color-success)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '4px'}}>SALVO</span>}
           </h2>
 
           <div className="no-print" style={{ marginBottom: '1.5rem' }}>
@@ -180,79 +302,116 @@ export default function Pedidos() {
               placeholder="Nome do Fornecedor ou Observação (Opcional)" 
               value={fornecedor}
               onChange={e => setFornecedor(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+              disabled={isSaved}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: isSaved ? 'var(--color-surface-hover)' : 'var(--color-surface)' }}
             />
           </div>
 
           {/* Adicionar Item Avulso */}
-          <form className="no-print" onSubmit={handleAddAvulso} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)' }}>
-            <input 
-              type="text" 
-              placeholder="Digitar item não cadastrado..." 
-              value={avulsoNome}
-              onChange={e => setAvulsoNome(e.target.value)}
-              style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-            />
-            <input 
-              type="number" 
-              min="1"
-              value={avulsoQtd}
-              onChange={e => setAvulsoQtd(e.target.value)}
-              style={{ width: '70px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-            />
-            <button type="submit" className="btn btn-outline" style={{ padding: '0.5rem' }}>
-              <Plus size={20} />
-            </button>
-          </form>
+          {!isSaved && (
+            <form className="no-print" onSubmit={handleAddAvulso} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)' }}>
+              <input 
+                type="text" 
+                placeholder="Digitar item não cadastrado..." 
+                value={avulsoNome}
+                onChange={e => setAvulsoNome(e.target.value)}
+                style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+              />
+              <input 
+                type="number" 
+                min="1"
+                value={avulsoQtd}
+                onChange={e => setAvulsoQtd(e.target.value)}
+                style={{ width: '70px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+              />
+              <button type="submit" className="btn btn-outline" style={{ padding: '0.5rem' }}>
+                <Plus size={20} />
+              </button>
+            </form>
+          )}
 
           {pedido.length === 0 ? (
             <div className="no-print" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <p>Selecione as peças esgotadas ao lado para montar seu pedido de compra.</p>
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: 'var(--color-surface-hover)' }}>
-                  <tr>
-                    <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Peça / Descrição</th>
-                    <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Cód. Original</th>
-                    <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', width: '100px' }}>Qtd</th>
-                    <th className="no-print" style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', width: '60px' }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedido.map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <td style={{ padding: '0.75rem' }}>
-                        <div style={{ fontWeight: 600 }}>{item.nome}</div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ID: {item.id}</div>
-                      </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>{item.oem}</td>
-                      <td style={{ padding: '0.75rem' }}>
-                        {/* No PDF, mostramos apenas o número. Na tela, mostramos o input */}
-                        <span className="print-only" style={{ fontWeight: 'bold' }}>{item.qtdPedida} un</span>
-                        <input 
-                          type="number" 
-                          min="1"
-                          className="no-print"
-                          value={item.qtdPedida}
-                          onChange={(e) => updateQtd(item.id, e.target.value)}
-                          style={{ width: '70px', padding: '0.5rem' }}
-                        />
-                      </td>
-                      <td className="no-print" style={{ padding: '0.75rem', textAlign: 'right' }}>
-                        <button 
-                          style={{ color: 'var(--color-danger)', padding: '0.5rem' }}
-                          onClick={() => removeFromPedido(item.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+            <>
+              <div className="table-responsive" style={{ overflowX: 'auto', marginBottom: '1rem' }}>
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead style={{ backgroundColor: 'var(--color-surface-hover)' }}>
+                    <tr>
+                      <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Peça / Descrição</th>
+                      <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }}>Cód. Original</th>
+                      <th style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', width: '120px' }}>Qtd</th>
+                      {!isSaved && <th className="no-print" style={{ padding: '0.75rem', fontWeight: 600, borderBottom: '1px solid var(--color-border)', width: '60px' }}></th>}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {pedido.map(item => (
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                        <td style={{ padding: '0.75rem' }}>
+                          <div style={{ fontWeight: 600, wordBreak: 'break-word' }}>{item.nome}</div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ID: {item.id}</div>
+                        </td>
+                        <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>{item.oem}</td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <span className="print-only" style={{ fontWeight: 'bold' }}>{item.qtdPedida} un</span>
+                          {isSaved ? (
+                            <span className="no-print" style={{ fontWeight: 'bold' }}>{item.qtdPedida} un</span>
+                          ) : (
+                            <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <button type="button" onClick={() => updateQtd(item.id, item.qtdPedida - 1)} className="btn btn-outline" style={{ padding: '0.2rem 0.4rem', minWidth: '30px' }}><Minus size={14} /></button>
+                              <input 
+                                type="number" 
+                                min="1"
+                                value={item.qtdPedida}
+                                onChange={(e) => updateQtd(item.id, e.target.value)}
+                                style={{ width: '50px', padding: '0.25rem', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px' }}
+                              />
+                              <button type="button" onClick={() => updateQtd(item.id, item.qtdPedida + 1)} className="btn btn-outline" style={{ padding: '0.2rem 0.4rem', minWidth: '30px' }}><Plus size={14} /></button>
+                            </div>
+                          )}
+                        </td>
+                        {!isSaved && (
+                          <td className="no-print" style={{ padding: '0.75rem', textAlign: 'right' }}>
+                            <button 
+                              style={{ color: 'var(--color-danger)', padding: '0.5rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                              onClick={() => removeFromPedido(item.id)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Botões de Ação Final */}
+              <div className="no-print" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {!isSaved ? (
+                  <button className="btn btn-primary" onClick={salvarEContinuar} style={{ width: '100%' }}>
+                    <Save size={18} /> Salvar Pedido e Continuar
+                  </button>
+                ) : (
+                  <>
+                    <button className="btn btn-outline" onClick={novoPedido} style={{ flex: 1, minWidth: '100px', display: 'flex', justifyContent: 'center' }}>
+                      Novo
+                    </button>
+                    <button className="btn btn-outline" onClick={editarPedido} style={{ flex: 1, minWidth: '100px', display: 'flex', justifyContent: 'center' }}>
+                      <Edit size={18} /> Editar
+                    </button>
+                    <button className="btn btn-primary" onClick={handlePrint} style={{ flex: 1, minWidth: '140px', display: 'flex', justifyContent: 'center' }}>
+                      <Printer size={18} /> Imprimir / PDF
+                    </button>
+                    <button className="btn" onClick={excluirPedidoAtual} style={{ flex: 1, minWidth: '100px', backgroundColor: 'var(--color-danger)', color: 'white', border: 'none', display: 'flex', justifyContent: 'center' }}>
+                      <Trash2 size={18} /> Excluir
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -260,3 +419,4 @@ export default function Pedidos() {
     </div>
   );
 }
+
