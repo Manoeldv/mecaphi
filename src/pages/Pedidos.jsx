@@ -201,11 +201,6 @@ export default function Pedidos() {
           <button className="btn btn-outline" onClick={() => setShowHistorico(true)}>
             <History size={20} /> Pedidos Salvos
           </button>
-          {!isSaved && (
-             <button className="btn btn-primary" onClick={salvarEContinuar} disabled={pedido.length === 0}>
-               <Save size={20} /> Salvar e Continuar
-             </button>
-          )}
         </div>
       </header>
 
@@ -227,7 +222,7 @@ export default function Pedidos() {
       <div className="grid md:grid-cols-2 gap-6">
         
         {/* Lado Esquerdo: Peças Esgotadas (Oculto na impressão) */}
-        <div className="card no-print" style={{ display: 'flex', flexDirection: 'column', opacity: isSaved ? 0.5 : 1, pointerEvents: isSaved ? 'none' : 'auto' }}>
+        <div className="card no-print" style={{ display: 'flex', flexDirection: 'column', opacity: isSaved ? 0.5 : 1, pointerEvents: isSaved ? 'none' : 'auto', minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <PackageX size={20} color="var(--color-danger)" /> Catálogo
@@ -287,7 +282,7 @@ export default function Pedidos() {
         </div>
 
         {/* Lado Direito: Lista do Pedido Atual */}
-        <div className="card print-expand" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card print-expand" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <h2 className="no-print" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ShoppingCart size={20} color="var(--color-primary)" /> 
@@ -309,22 +304,22 @@ export default function Pedidos() {
 
           {/* Adicionar Item Avulso */}
           {!isSaved && (
-            <form className="no-print" onSubmit={handleAddAvulso} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)' }}>
+            <form className="no-print" onSubmit={handleAddAvulso} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--color-surface-hover)', borderRadius: 'var(--radius-md)', flexWrap: 'wrap' }}>
               <input 
                 type="text" 
                 placeholder="Digitar item não cadastrado..." 
                 value={avulsoNome}
                 onChange={e => setAvulsoNome(e.target.value)}
-                style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                style={{ flex: '1 1 200px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
               />
               <input 
                 type="number" 
                 min="1"
                 value={avulsoQtd}
                 onChange={e => setAvulsoQtd(e.target.value)}
-                style={{ width: '70px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                style={{ width: '80px', flex: '0 0 80px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
               />
-              <button type="submit" className="btn btn-outline" style={{ padding: '0.5rem' }}>
+              <button type="submit" className="btn btn-outline" style={{ padding: '0.5rem', flex: '0 0 auto' }}>
                 <Plus size={20} />
               </button>
             </form>
@@ -351,7 +346,7 @@ export default function Pedidos() {
                       <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <td style={{ padding: '0.75rem' }}>
                           <div style={{ fontWeight: 600, wordBreak: 'break-word' }}>{item.nome}</div>
-                          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ID: {item.id}</div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>ID: {item.id}</div>
                         </td>
                         <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>{item.oem}</td>
                         <td style={{ padding: '0.75rem' }}>
