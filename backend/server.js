@@ -7,6 +7,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+
 import Peca from './models/Peca.js';
 import Veiculo from './models/Veiculo.js';
 import Venda from './models/Venda.js';
@@ -20,6 +23,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*", // Permite acesso do front end
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  }
+});
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -57,6 +67,14 @@ mongoose.connection.on('disconnected', () => {
 
 mongoose.connection.on('error', (err) => {
   console.error('❌ Erro de conexão do Mongoose:', err.message);
+});
+
+// Eventos do Socket
+io.on('connection', (socket) => {
+  console.log('🔌 Cliente conectado via WebSocket:', socket.id);
+  socket.on('disconnect', () => {
+    console.log('🔌 Cliente desconectado:', socket.id);
+  });
 });
 
 // --- SEED USERS ---
@@ -179,6 +197,7 @@ app.post('/api/pecas', async (req, res) => {
       });
     }
 
+    io.emit('refreshEstoque'); // Sincronização em tempo real
     res.status(201).json(obj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -201,6 +220,7 @@ app.put('/api/pecas/:id', async (req, res) => {
       });
     }
 
+    io.emit('refreshEstoque'); // Sincronização em tempo real
     res.json(obj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -223,6 +243,7 @@ app.delete('/api/pecas/:id', async (req, res) => {
         });
       }
     }
+    io.emit('refreshEstoque'); // Sincronização em tempo real
     res.json({ message: 'Peça removida com sucesso' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -260,6 +281,7 @@ app.post('/api/veiculos', async (req, res) => {
       });
     }
 
+    io.emit('refreshVeiculos'); // Sincronização em tempo real
     res.status(201).json(obj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -300,6 +322,8 @@ app.post('/api/vendas', async (req, res) => {
       });
     }
 
+    io.emit('refreshVendas'); // Sincronização em tempo real das vendas
+    io.emit('refreshEstoque'); // Sincronização em tempo real do estoque afetado
     res.status(201).json(novaVenda);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -331,6 +355,8 @@ app.delete('/api/vendas/:id', async (req, res) => {
       });
     }
 
+    io.emit('refreshVendas'); // Sincronização em tempo real
+    io.emit('refreshEstoque'); // Sincronização em tempo real
     res.json({ message: 'Venda excluída e estoque restaurado.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -360,6 +386,7 @@ app.post('/api/usuarios', async (req, res) => {
     await novoUsuario.save();
     const obj = novoUsuario.toObject();
     obj.id = obj._id.toString();
+    io.emit('refreshUsuarios'); // Sincronização
     res.status(201).json(obj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -372,6 +399,7 @@ app.put('/api/usuarios/:id', async (req, res) => {
     if (!atualizado) return res.status(404).json({ error: 'Usuário não encontrado' });
     const obj = atualizado.toObject();
     obj.id = obj._id.toString();
+    io.emit('refreshUsuarios'); // Sincronização
     res.json(obj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -381,6 +409,7 @@ app.put('/api/usuarios/:id', async (req, res) => {
 app.delete('/api/usuarios/:id', async (req, res) => {
   try {
     await Usuario.findByIdAndDelete(req.params.id);
+    io.emit('refreshUsuarios'); // Sincronização
     res.json({ message: 'Usuário removido' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -484,8 +513,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Erro interno no servidor' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Servidor HTTP e Socket.IO rodando na porta ${PORT}`);
 });
 
 // Graceful Shutdown

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { io } from 'socket.io-client';
 
 const AppContext = createContext();
+const socket = io(); // Conecta no mesmo host da aplicação
 
 export function AppProvider({ children }) {
   // Global State
@@ -23,10 +25,16 @@ export function AppProvider({ children }) {
     });
   };
 
-  // Load Initial Data from API
-  useEffect(() => {
+  // Funções de Busca (Fetch)
+  const fetchEstoque = useCallback(() => {
     fetch('/api/pecas').then(res => res.json()).then(data => setEstoque(data)).catch(console.error);
+  }, []);
+
+  const fetchVeiculos = useCallback(() => {
     fetch('/api/veiculos').then(res => res.json()).then(data => setVeiculos(data)).catch(console.error);
+  }, []);
+
+  const fetchVendas = useCallback(() => {
     fetch('/api/vendas').then(res => res.json()).then(data => {
       // Sort vendas mostly recent first
       const sorted = data.sort((a,b) => new Date(b.data) - new Date(a.data));
@@ -37,13 +45,34 @@ export function AppProvider({ children }) {
       const vendasHoje = sorted.filter(v => v.data.startsWith(hoje)).length;
       const valorCaixa = sorted.reduce((acc, v) => acc + v.total, 0);
       setMetricas({ valorCaixa, vendasHoje });
-      setMetricas({ valorCaixa, vendasHoje });
     }).catch(console.error);
-
-    // Fetch users only if user becomes boss, but we'll just fetch them globally for simplicity,
-    // or we can fetch them dynamically. For MVP, we fetch all.
-    fetchUsuarios();
   }, []);
+
+  const fetchUsuarios = useCallback(() => {
+    fetch('/api/usuarios').then(res => res.json()).then(data => setUsuarios(data)).catch(console.error);
+  }, []);
+
+  // Load Initial Data e Inscrição nos Eventos do Socket
+  useEffect(() => {
+    fetchEstoque();
+    fetchVeiculos();
+    fetchVendas();
+    fetchUsuarios();
+
+    // Listeners em tempo real
+    socket.on('refreshEstoque', fetchEstoque);
+    socket.on('refreshVeiculos', fetchVeiculos);
+    socket.on('refreshVendas', fetchVendas);
+    socket.on('refreshUsuarios', fetchUsuarios);
+
+    // Limpeza
+    return () => {
+      socket.off('refreshEstoque', fetchEstoque);
+      socket.off('refreshVeiculos', fetchVeiculos);
+      socket.off('refreshVendas', fetchVendas);
+      socket.off('refreshUsuarios', fetchUsuarios);
+    };
+  }, [fetchEstoque, fetchVeiculos, fetchVendas, fetchUsuarios]);
 
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -241,17 +270,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  const fetchUsuarios = async () => {
-    try {
-      const res = await fetch('/api/usuarios');
-      if (res.ok) {
-        const data = await res.json();
-        setUsuarios(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // (fetchUsuarios foi movido para o topo e implementado com useCallback)
 
   // Helpers de Usuários
   const addUsuario = async (u) => {
