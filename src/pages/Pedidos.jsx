@@ -3,7 +3,7 @@ import { PackageX, ShoppingCart, Plus, Minus, Trash2, Printer, ClipboardList, Se
 import { useAppContext } from '../context/AppContext';
 
 export default function Pedidos() {
-  const { estoque } = useAppContext();
+  const { estoque, pedidosHistorico, salvarPedido, deletarPedido } = useAppContext();
   
   const [busca, setBusca] = useState('');
   
@@ -21,13 +21,8 @@ export default function Pedidos() {
     return localStorage.getItem('pedidoFornecedor') || '';
   });
 
-  // Novos estados para histórico de pedidos
   const [pedidoAtivoId, setPedidoAtivoId] = useState(() => localStorage.getItem('pedidoAtivoId') || null);
   const [isSaved, setIsSaved] = useState(() => localStorage.getItem('pedidoIsSaved') === 'true');
-  const [pedidosSalvos, setPedidosSalvos] = useState(() => {
-    const saved = localStorage.getItem('pedidosSalvos');
-    return saved ? JSON.parse(saved) : [];
-  });
   const [showHistorico, setShowHistorico] = useState(false);
 
   useEffect(() => {
@@ -47,8 +42,8 @@ export default function Pedidos() {
   }, [isSaved]);
 
   useEffect(() => {
-    localStorage.setItem('pedidosSalvos', JSON.stringify(pedidosSalvos));
-  }, [pedidosSalvos]);
+    localStorage.setItem('pedidoIsSaved', isSaved);
+  }, [isSaved]);
   
   // Item Avulso
   const [avulsoNome, setAvulsoNome] = useState('');
@@ -97,7 +92,7 @@ export default function Pedidos() {
   };
 
   // Ações do Pedido
-  const salvarEContinuar = () => {
+  const salvarEContinuar = async () => {
     if (pedido.length === 0) return;
     
     let idParaSalvar = pedidoAtivoId;
@@ -113,14 +108,7 @@ export default function Pedidos() {
       itens: pedido
     };
 
-    setPedidosSalvos(prev => {
-      const existe = prev.find(p => p.id === idParaSalvar);
-      if (existe) {
-        return prev.map(p => p.id === idParaSalvar ? novoPedidoObj : p);
-      }
-      return [novoPedidoObj, ...prev];
-    });
-
+    await salvarPedido(novoPedidoObj);
     setIsSaved(true);
   };
 
@@ -128,13 +116,13 @@ export default function Pedidos() {
     setIsSaved(false);
   };
 
-  const excluirPedidoAtual = () => {
+  const excluirPedidoAtual = async () => {
     if (!pedidoAtivoId) {
        novoPedido();
        return;
     }
     if (window.confirm("Deseja realmente excluir este pedido salvo?")) {
-      setPedidosSalvos(prev => prev.filter(p => p.id !== pedidoAtivoId));
+      await deletarPedido(pedidoAtivoId);
       novoPedido();
     }
   };
@@ -169,11 +157,11 @@ export default function Pedidos() {
               <h2 style={{fontSize: '1.25rem', fontWeight: 'bold'}}>Histórico de Pedidos</h2>
               <button onClick={() => setShowHistorico(false)} className="btn btn-outline" style={{padding: '0.5rem'}}><X size={20} /></button>
             </div>
-            {pedidosSalvos.length === 0 ? (
+            {pedidosHistorico.length === 0 ? (
               <p style={{color: 'var(--color-text-muted)'}}>Nenhum pedido salvo.</p>
             ) : (
               <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
-                {pedidosSalvos.map(ped => (
+                {pedidosHistorico.map(ped => (
                   <div key={ped.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface-hover)'}}>
                      <div>
                        <div style={{fontWeight: 'bold'}}>ID: {ped.id}</div>

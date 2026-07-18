@@ -15,6 +15,7 @@ import Veiculo from './models/Veiculo.js';
 import Venda from './models/Venda.js';
 import Usuario from './models/Usuario.js';
 import Log from './models/Log.js';
+import Pedido from './models/Pedido.js';
 
 dotenv.config();
 
@@ -358,6 +359,61 @@ app.delete('/api/vendas/:id', async (req, res) => {
     io.emit('refreshVendas'); // Sincronização em tempo real
     io.emit('refreshEstoque'); // Sincronização em tempo real
     res.json({ message: 'Venda excluída e estoque restaurado.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ROTAS PEDIDOS ---
+app.get('/api/pedidos', async (req, res) => {
+  try {
+    const pedidos = await Pedido.find().sort({ createdAt: -1 });
+    const formatted = pedidos.map(p => {
+      const obj = p.toObject();
+      obj.id = obj.idPersonalizado; // Mapeia para o formato esperado pelo frontend
+      return obj;
+    });
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/pedidos', async (req, res) => {
+  try {
+    // Se o pedido já existir pelo ID personalizado (ex: PED-123), atualiza
+    let result;
+    const existente = await Pedido.findOne({ idPersonalizado: req.body.id });
+    
+    const dataObj = {
+      idPersonalizado: req.body.id,
+      data: req.body.data,
+      fornecedor: req.body.fornecedor,
+      itens: req.body.itens
+    };
+
+    if (existente) {
+      result = await Pedido.findOneAndUpdate({ idPersonalizado: req.body.id }, dataObj, { new: true });
+    } else {
+      const novoPedido = new Pedido(dataObj);
+      result = await novoPedido.save();
+    }
+    
+    const obj = result.toObject();
+    obj.id = obj.idPersonalizado;
+    
+    io.emit('refreshPedidos'); // Sincronização em tempo real
+    res.status(201).json(obj);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/pedidos/:idPersonalizado', async (req, res) => {
+  try {
+    await Pedido.findOneAndDelete({ idPersonalizado: req.params.idPersonalizado });
+    io.emit('refreshPedidos'); // Sincronização em tempo real
+    res.json({ message: 'Pedido excluído e estoque restaurado.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -9,6 +9,7 @@ export function AppProvider({ children }) {
   const [estoque, setEstoque] = useState([]);
   const [veiculos, setVeiculos] = useState([]);
   const [vendasHistorico, setVendasHistorico] = useState([]);
+  const [pedidosHistorico, setPedidosHistorico] = useState([]);
   const [metricas, setMetricas] = useState({ valorCaixa: 0, vendasHoje: 0 });
   const [currentUser, setCurrentUser] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
@@ -52,18 +53,24 @@ export function AppProvider({ children }) {
     fetch('/api/usuarios').then(res => res.json()).then(data => setUsuarios(data)).catch(console.error);
   }, []);
 
+  const fetchPedidos = useCallback(() => {
+    fetch('/api/pedidos').then(res => res.json()).then(data => setPedidosHistorico(data)).catch(console.error);
+  }, []);
+
   // Load Initial Data e Inscrição nos Eventos do Socket
   useEffect(() => {
     fetchEstoque();
     fetchVeiculos();
     fetchVendas();
     fetchUsuarios();
+    fetchPedidos();
 
     // Listeners em tempo real
     socket.on('refreshEstoque', fetchEstoque);
     socket.on('refreshVeiculos', fetchVeiculos);
     socket.on('refreshVendas', fetchVendas);
     socket.on('refreshUsuarios', fetchUsuarios);
+    socket.on('refreshPedidos', fetchPedidos);
 
     // Limpeza
     return () => {
@@ -71,8 +78,9 @@ export function AppProvider({ children }) {
       socket.off('refreshVeiculos', fetchVeiculos);
       socket.off('refreshVendas', fetchVendas);
       socket.off('refreshUsuarios', fetchUsuarios);
+      socket.off('refreshPedidos', fetchPedidos);
     };
-  }, [fetchEstoque, fetchVeiculos, fetchVendas, fetchUsuarios]);
+  }, [fetchEstoque, fetchVeiculos, fetchVendas, fetchUsuarios, fetchPedidos]);
 
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -272,6 +280,35 @@ export function AppProvider({ children }) {
 
   // (fetchUsuarios foi movido para o topo e implementado com useCallback)
 
+  // Helpers de Pedidos
+  const salvarPedido = async (pedido) => {
+    try {
+      const res = await fetch('/api/pedidos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido)
+      });
+      if (res.ok) {
+        showToast('Pedido salvo/atualizado com sucesso!');
+      } else {
+        throw new Error('Falha');
+      }
+    } catch (e) {
+      showToast('Erro ao salvar pedido no servidor.', 'error');
+    }
+  };
+
+  const deletarPedido = async (idPersonalizado) => {
+    try {
+      const res = await fetch(`/api/pedidos/${idPersonalizado}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Pedido excluído com sucesso.');
+      } else {
+        throw new Error('Falha');
+      }
+    } catch (e) {
+      showToast('Erro ao excluir pedido.', 'error');
+    }
+  };
+
   // Helpers de Usuários
   const addUsuario = async (u) => {
     try {
@@ -339,6 +376,7 @@ export function AppProvider({ children }) {
       veiculos, addVeiculo,
       metricas, finalizarVenda, deleteVenda,
       vendasHistorico, setVendasHistorico,
+      pedidosHistorico, salvarPedido, deletarPedido,
       pdvCart, setPdvCart, addToPdvCart,
       toastMessage, showToast
     }}>
