@@ -195,19 +195,21 @@ export default function Pedidos() {
       </header>
 
       {/* Cabeçalho Exclusivo de Impressão */}
-      <div className="print-only" style={{ marginBottom: '2rem', textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '1rem' }}>
-        <h1 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>AutoPeças ERP - Pedido de Compra / Cotação</h1>
-        <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left', marginTop: '1rem', fontSize: '14px', color: '#333' }}>
-          <div>
-            <strong>Data do Pedido:</strong> {new Date().toLocaleDateString('pt-BR')}<br/>
-            <strong>Fornecedor/Observação:</strong> {fornecedor || 'A definir'}
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <strong>ID do Pedido:</strong> {pedidoAtivoId || 'Rascunho'}<br/>
-            <strong>Total de Peças:</strong> {pedido.reduce((acc, p) => acc + p.qtdPedida, 0)} un.
+      {activeTab === 'compras' && (
+        <div className="print-only" style={{ marginBottom: '2rem', textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '1rem' }}>
+          <h1 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>AutoPeças ERP - Pedido de Compra / Cotação</h1>
+          <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left', marginTop: '1rem', fontSize: '14px', color: '#333' }}>
+            <div>
+              <strong>Data do Pedido:</strong> {new Date().toLocaleDateString('pt-BR')}<br/>
+              <strong>Fornecedor/Observação:</strong> {fornecedor || 'A definir'}
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <strong>ID do Pedido:</strong> {pedidoAtivoId || 'Rascunho'}<br/>
+              <strong>Total de Peças:</strong> {pedido.reduce((acc, p) => acc + p.qtdPedida, 0)} un.
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Abas */}
       <div className="no-print" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--color-border)' }}>

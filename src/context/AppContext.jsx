@@ -59,7 +59,10 @@ export function AppProvider({ children }) {
   }, []);
 
   const fetchOrcamentos = useCallback(() => {
-    fetch('/api/orcamentos').then(res => res.json()).then(data => setOrcamentos(data)).catch(console.error);
+    fetch(`/api/orcamentos?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
+      .then(res => res.json())
+      .then(data => setOrcamentos(data))
+      .catch(console.error);
   }, []);
 
   // Load Initial Data e Inscrição nos Eventos do Socket
@@ -120,7 +123,6 @@ export function AppProvider({ children }) {
       });
       if (res.ok) {
         const data = await res.json();
-        window.history.pushState({}, '', '/'); // Força a volta pra tela de dashboard
         setCurrentUser(data);
         showToast(`Bem-vindo, ${data.username}!`, 'success');
         return { success: true };
@@ -341,12 +343,16 @@ export function AppProvider({ children }) {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados)
       });
       if (res.ok) {
+        // Atualização otimista para não depender do websocket e ser instantâneo na tela
+        setOrcamentos(prev => prev.map(o => o.id === id ? { ...o, ...dados } : o));
         showToast('Orçamento atualizado!');
+        return true;
       } else {
         throw new Error('Falha');
       }
     } catch (e) {
       showToast('Erro ao atualizar orçamento.', 'error');
+      return false;
     }
   };
 

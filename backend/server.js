@@ -458,7 +458,18 @@ app.post('/api/orcamentos', async (req, res) => {
 
 app.put('/api/orcamentos/:id', async (req, res) => {
   try {
+    console.log('--- PUT ORCAMENTO ---');
+    console.log('ID:', req.params.id);
+    console.log('Itens recebidos:', JSON.stringify(req.body.itens, null, 2));
+    
+    // DEBUG LOG
+    import('fs').then(fs => {
+      fs.appendFileSync('debug_put_orcamento.txt', `\n\n--- PUT ---\nReq Body: ${JSON.stringify(req.body, null, 2)}`);
+    });
+    
     const atualizado = await Orcamento.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    console.log('Itens após update Mongoose:', JSON.stringify(atualizado.itens, null, 2));
     if (!atualizado) return res.status(404).json({ error: 'Orçamento não encontrado' });
     const obj = atualizado.toObject();
     obj.id = obj._id.toString();

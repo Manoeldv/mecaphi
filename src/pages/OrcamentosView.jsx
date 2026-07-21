@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Copy, Plus, Trash2, ExternalLink, MessageCircle, Edit, Save, X } from 'lucide-react';
+import { FileText, Copy, Plus, Trash2, ExternalLink, MessageCircle, Edit, Save, X, Printer } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function OrcamentosView() {
@@ -60,9 +60,20 @@ export default function OrcamentosView() {
   };
 
   const handleSaveEdit = async () => {
-    await atualizarOrcamento(editedOrcamento.id, editedOrcamento);
-    setSelectedOrcamento(editedOrcamento);
-    setEditMode(false);
+    // Tratar os preços dos itens para garantir que sejam Number válidos (trocar vírgula por ponto)
+    const orcamentoTratado = {
+      ...editedOrcamento,
+      itens: editedOrcamento.itens.map(item => ({
+        ...item,
+        preco: typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) || 0 : item.preco
+      }))
+    };
+
+    const sucesso = await atualizarOrcamento(orcamentoTratado.id, orcamentoTratado);
+    if (sucesso) {
+      setSelectedOrcamento(orcamentoTratado);
+      setEditMode(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -98,11 +109,18 @@ export default function OrcamentosView() {
     });
   };
 
+  const handleUpdateItem = (index, field, value) => {
+    setEditedOrcamento(prev => ({
+      ...prev,
+      itens: prev.itens.map((i, idx) => idx === index ? { ...i, [field]: value } : i)
+    }));
+  };
+
   return (
     <div className="grid md:grid-cols-3 gap-6">
       
       {/* Lista de Orçamentos */}
-      <div className="card md:col-span-1" style={{ display: 'flex', flexDirection: 'column', maxHeight: '70vh', minWidth: 0 }}>
+      <div className="card md:col-span-1 no-print" style={{ display: 'flex', flexDirection: 'column', maxHeight: '70vh', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Orçamentos</h2>
           <button className="btn btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={handleNovoOrcamento}>
@@ -207,12 +225,18 @@ export default function OrcamentosView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {editedOrcamento.itens.map(item => (
+                      {editedOrcamento.itens.map((item, idx) => (
                         <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: '0.75rem' }}>{item.nome}</td>
-                          <td style={{ padding: '0.75rem', textAlign: 'center' }}>{item.qtd}</td>
-                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>R$ {item.preco ? item.preco.toFixed(2) : '0.00'}</td>
-                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input" style={{ width: '100%', padding: '0.25rem' }} value={item.nome} onChange={e => handleUpdateItem(idx, 'nome', e.target.value)} />
+                          </td>
+                          <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                            <input type="number" className="input" style={{ width: '60px', padding: '0.25rem', textAlign: 'center' }} min="1" value={item.qtd || ''} onChange={e => handleUpdateItem(idx, 'qtd', e.target.value)} />
+                          </td>
+                          <td style={{ padding: '0.5rem', textAlign: 'right' }}>
+                            <input type="text" className="input" style={{ width: '100px', padding: '0.25rem', textAlign: 'right' }} placeholder="0,00" value={item.preco !== undefined ? item.preco : ''} onChange={e => handleUpdateItem(idx, 'preco', e.target.value)} />
+                          </td>
+                          <td style={{ padding: '0.5rem', textAlign: 'right' }}>
                             <button className="btn btn-outline" style={{ color: 'var(--color-danger)', border: 'none', padding: '0.25rem' }} onClick={() => handleRemoveItem(item.id)}>
                               <Trash2 size={16} />
                             </button>
@@ -228,7 +252,23 @@ export default function OrcamentosView() {
         ) : (
           /* MODO DE VISUALIZAÇÃO */
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+            {/* Cabeçalho de Impressão */}
+            <div className="print-only" style={{ marginBottom: '2rem', textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '1rem' }}>
+              <h1 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>AutoPeças ERP - Orçamento de Peças</h1>
+              <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left', marginTop: '1rem', fontSize: '14px', color: '#333' }}>
+                <div>
+                  <strong>Data:</strong> {new Date(selectedOrcamento.data).toLocaleDateString('pt-BR')}<br/>
+                  <strong>Cliente:</strong> {selectedOrcamento.cliente || 'Não informado'}<br/>
+                  <strong>Contato:</strong> {selectedOrcamento.telefone || 'Não informado'}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <strong>Orçamento ID:</strong> {selectedOrcamento.id || 'N/A'}<br/>
+                  <strong>Veículo:</strong> {selectedOrcamento.veiculo || 'Não informado'}
+                </div>
+              </div>
+            </div>
+
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                   Orçamento: {selectedOrcamento.cliente || 'Pendente / Não informado'}
@@ -241,10 +281,13 @@ export default function OrcamentosView() {
               
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button className="btn btn-outline" onClick={handleEditClick} title="Editar Orçamento">
-                  <Edit size={18} /> Editar Orçamento
+                  <Edit size={18} /> Editar
+                </button>
+                <button className="btn btn-outline" onClick={() => window.print()} title="Gerar PDF / Imprimir">
+                  <Printer size={18} /> PDF / Imprimir
                 </button>
                 <button className="btn btn-primary" onClick={() => copiarLink(selectedOrcamento.token)} title="Copiar Link para enviar">
-                  <Copy size={18} /> Copiar Link
+                  <Copy size={18} /> Link
                 </button>
                 <a href={`/orcamento/${selectedOrcamento.token}`} target="_blank" rel="noreferrer" className="btn btn-outline" title="Ver como Cliente">
                   <ExternalLink size={18} />
@@ -274,13 +317,13 @@ export default function OrcamentosView() {
                         <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                           <td style={{ padding: '0.75rem', fontWeight: 500 }}>{item.nome}</td>
                           <td style={{ padding: '0.75rem', textAlign: 'center' }}>{item.qtd}</td>
-                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>R$ {item.preco ? item.preco.toFixed(2) : '0.00'}</td>
+                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>R$ {Number(item.preco || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                       <tr>
                         <td colSpan="2" style={{ padding: '1rem 0.75rem', fontWeight: 'bold', textAlign: 'right', borderTop: '2px solid var(--color-border)' }}>Total Aproximado:</td>
                         <td style={{ padding: '1rem 0.75rem', fontWeight: 'bold', textAlign: 'right', borderTop: '2px solid var(--color-border)', color: 'var(--color-primary)' }}>
-                          R$ {selectedOrcamento.itens.reduce((acc, item) => acc + ((item.preco || 0) * item.qtd), 0).toFixed(2)}
+                          R$ {selectedOrcamento.itens.reduce((acc, item) => acc + (Number(item.preco || 0) * Number(item.qtd || 1)), 0).toFixed(2)}
                         </td>
                       </tr>
                     </tbody>
@@ -289,7 +332,7 @@ export default function OrcamentosView() {
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: 'auto' }}>
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: 'auto' }}>
               <select 
                 className="input" 
                 value={selectedOrcamento.status}

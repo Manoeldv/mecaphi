@@ -1,0 +1,76 @@
+
+
+--- PUT ---
+Req Body: {
+  "_id": "6a5f6d3c62df7e8f69315834",
+  "token": "wjlx3zzbm7tbnwclzt7zh",
+  "cliente": "Manoel",
+  "telefone": "33984362984",
+  "veiculo": "Gol",
+  "itens": [
+    {
+      "id": "1784639865188",
+      "nome": "Amortedores trazeiro",
+      "qtd": 2,
+      "preco": 300,
+      "_id": "6a5f717dd2f7f8a7ec1db388"
+    }
+  ],
+  "status": "Finalizado",
+  "observacoes": "",
+  "data": "2026-07-21T12:59:40.735Z",
+  "createdAt": "2026-07-21T12:59:40.736Z",
+  "updatedAt": "2026-07-21T14:54:04.844Z",
+  "__v": 1,
+  "id": "6a5f6d3c62df7e8f69315834"
+}
+
+--- PUT ---
+Req Body: {
+  "_id": "6a5f6d3c62df7e8f69315834",
+  "token": "wjlx3zzbm7tbnwclzt7zh",
+  "cliente": "Manoel",
+  "telefone": "33984362984",
+  "veiculo": "Gol",
+  "itens": [
+    {
+      "id": "1784639865188",
+      "nome": "Amortedores trazeiro",
+      "qtd": 2,
+      "preco": 400,
+      "_id": "6a5f717dd2f7f8a7ec1db388"
+    }
+  ],
+  "status": "Finalizado",
+  "observacoes": "",
+  "data": "2026-07-21T12:59:40.735Z",
+  "createdAt": "2026-07-21T12:59:40.736Z",
+  "updatedAt": "2026-07-21T14:54:04.844Z",
+  "__v": 1,
+  "id": "6a5f6d3c62df7e8f69315834"
+}
+
+--- PUT ---
+Req Body: {
+  "_id": "6a5f6d3c62df7e8f69315834",
+  "token": "wjlx3zzbm7tbnwclzt7zh",
+  "cliente": "Manoel",
+  "telefone": "33984362984",
+  "veiculo": "Gol",
+  "itens": [
+    {
+      "id": "1784639865188",
+      "nome": "Amortedores trazeiro",
+      "qtd": "1",
+      "preco": 210,
+      "_id": "6a5f717dd2f7f8a7ec1db388"
+    }
+  ],
+  "status": "Finalizado",
+  "observacoes": "",
+  "data": "2026-07-21T12:59:40.735Z",
+  "createdAt": "2026-07-21T12:59:40.736Z",
+  "updatedAt": "2026-07-21T14:54:51.766Z",
+  "__v": 1,
+  "id": "6a5f6d3c62df7e8f69315834"
+}

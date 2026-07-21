@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { LogIn } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 export default function Login() {
   const { login } = useAppContext();
+  const navigate = useNavigate();
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,8 +14,11 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await login(user, password);
+    const result = await login(user, password);
     setLoading(false);
+    if (result && result.success) {
+      navigate('/', { replace: true });
+    }
   };
 
   return (
