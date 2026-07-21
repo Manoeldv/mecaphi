@@ -10,6 +10,7 @@ export function AppProvider({ children }) {
   const [veiculos, setVeiculos] = useState([]);
   const [vendasHistorico, setVendasHistorico] = useState([]);
   const [pedidosHistorico, setPedidosHistorico] = useState([]);
+  const [orcamentos, setOrcamentos] = useState([]);
   const [metricas, setMetricas] = useState({ valorCaixa: 0, vendasHoje: 0 });
   const [currentUser, setCurrentUser] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
@@ -57,6 +58,10 @@ export function AppProvider({ children }) {
     fetch('/api/pedidos').then(res => res.json()).then(data => setPedidosHistorico(data)).catch(console.error);
   }, []);
 
+  const fetchOrcamentos = useCallback(() => {
+    fetch('/api/orcamentos').then(res => res.json()).then(data => setOrcamentos(data)).catch(console.error);
+  }, []);
+
   // Load Initial Data e Inscrição nos Eventos do Socket
   useEffect(() => {
     fetchEstoque();
@@ -64,6 +69,7 @@ export function AppProvider({ children }) {
     fetchVendas();
     fetchUsuarios();
     fetchPedidos();
+    fetchOrcamentos();
 
     // Listeners em tempo real
     socket.on('refreshEstoque', fetchEstoque);
@@ -71,6 +77,7 @@ export function AppProvider({ children }) {
     socket.on('refreshVendas', fetchVendas);
     socket.on('refreshUsuarios', fetchUsuarios);
     socket.on('refreshPedidos', fetchPedidos);
+    socket.on('refreshOrcamentos', fetchOrcamentos);
 
     // Limpeza
     return () => {
@@ -79,8 +86,9 @@ export function AppProvider({ children }) {
       socket.off('refreshVendas', fetchVendas);
       socket.off('refreshUsuarios', fetchUsuarios);
       socket.off('refreshPedidos', fetchPedidos);
+      socket.off('refreshOrcamentos', fetchOrcamentos);
     };
-  }, [fetchEstoque, fetchVeiculos, fetchVendas, fetchUsuarios, fetchPedidos]);
+  }, [fetchEstoque, fetchVeiculos, fetchVendas, fetchUsuarios, fetchPedidos, fetchOrcamentos]);
 
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -309,6 +317,52 @@ export function AppProvider({ children }) {
     }
   };
 
+  // Helpers de Orçamentos
+  const salvarOrcamento = async (orcamento) => {
+    try {
+      const res = await fetch('/api/orcamentos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orcamento)
+      });
+      if (res.ok) {
+        showToast('Orçamento criado com sucesso!');
+        return await res.json();
+      } else {
+        throw new Error('Falha');
+      }
+    } catch (e) {
+      showToast('Erro ao salvar orçamento.', 'error');
+      return null;
+    }
+  };
+
+  const atualizarOrcamento = async (id, dados) => {
+    try {
+      const res = await fetch(`/api/orcamentos/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados)
+      });
+      if (res.ok) {
+        showToast('Orçamento atualizado!');
+      } else {
+        throw new Error('Falha');
+      }
+    } catch (e) {
+      showToast('Erro ao atualizar orçamento.', 'error');
+    }
+  };
+
+  const deletarOrcamento = async (id) => {
+    try {
+      const res = await fetch(`/api/orcamentos/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Orçamento excluído com sucesso.');
+      } else {
+        throw new Error('Falha');
+      }
+    } catch (e) {
+      showToast('Erro ao excluir orçamento.', 'error');
+    }
+  };
+
   // Helpers de Usuários
   const addUsuario = async (u) => {
     try {
@@ -377,6 +431,7 @@ export function AppProvider({ children }) {
       metricas, finalizarVenda, deleteVenda,
       vendasHistorico, setVendasHistorico,
       pedidosHistorico, salvarPedido, deletarPedido,
+      orcamentos, salvarOrcamento, atualizarOrcamento, deletarOrcamento,
       pdvCart, setPdvCart, addToPdvCart,
       toastMessage, showToast
     }}>

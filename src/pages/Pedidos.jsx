@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { PackageX, ShoppingCart, Plus, Minus, Trash2, Printer, ClipboardList, Search, History, Save, Edit, FileText, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import OrcamentosView from './OrcamentosView';
 
 export default function Pedidos() {
   const { estoque, pedidosHistorico, salvarPedido, deletarPedido } = useAppContext();
   
+  const [activeTab, setActiveTab] = useState('compras');
   const [busca, setBusca] = useState('');
   
   // Mostra todo o catálogo que bate com a busca. Se não tiver busca, mostra todo o estoque (ordenado pelos esgotados primeiro).
@@ -207,7 +209,40 @@ export default function Pedidos() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Abas */}
+      <div className="no-print" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--color-border)' }}>
+        <button 
+          onClick={() => setActiveTab('compras')}
+          style={{ 
+            padding: '0.5rem 1rem', 
+            background: 'none', 
+            border: 'none',
+            borderBottom: activeTab === 'compras' ? '2px solid var(--color-primary)' : '2px solid transparent',
+            color: activeTab === 'compras' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            fontWeight: activeTab === 'compras' ? 'bold' : 'normal',
+            cursor: 'pointer'
+          }}
+        >
+          Pedidos de Compra (Estoque)
+        </button>
+        <button 
+          onClick={() => setActiveTab('orcamentos')}
+          style={{ 
+            padding: '0.5rem 1rem', 
+            background: 'none', 
+            border: 'none',
+            borderBottom: activeTab === 'orcamentos' ? '2px solid var(--color-primary)' : '2px solid transparent',
+            color: activeTab === 'orcamentos' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            fontWeight: activeTab === 'orcamentos' ? 'bold' : 'normal',
+            cursor: 'pointer'
+          }}
+        >
+          Orçamentos de Clientes
+        </button>
+      </div>
+
+      {activeTab === 'compras' ? (
+        <div className="grid md:grid-cols-2 gap-6">
         
         {/* Lado Esquerdo: Peças Esgotadas (Oculto na impressão) */}
         <div className="card no-print" style={{ display: 'flex', flexDirection: 'column', opacity: isSaved ? 0.5 : 1, pointerEvents: isSaved ? 'none' : 'auto', minWidth: 0 }}>
@@ -399,6 +434,9 @@ export default function Pedidos() {
         </div>
 
       </div>
+      ) : (
+        <OrcamentosView />
+      )}
     </div>
   );
 }

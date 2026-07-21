@@ -16,6 +16,7 @@ import Venda from './models/Venda.js';
 import Usuario from './models/Usuario.js';
 import Log from './models/Log.js';
 import Pedido from './models/Pedido.js';
+import Orcamento from './models/Orcamento.js';
 
 dotenv.config();
 
@@ -414,6 +415,101 @@ app.delete('/api/pedidos/:idPersonalizado', async (req, res) => {
     await Pedido.findOneAndDelete({ idPersonalizado: req.params.idPersonalizado });
     io.emit('refreshPedidos'); // Sincronização em tempo real
     res.json({ message: 'Pedido excluído e estoque restaurado.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ROTAS ORÇAMENTOS (CLIENTES) ---
+app.get('/api/orcamentos', async (req, res) => {
+  try {
+    const orcamentos = await Orcamento.find().sort({ data: -1 });
+    const formatted = orcamentos.map(o => {
+      const obj = o.toObject();
+      obj.id = obj._id.toString();
+      return obj;
+    });
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/orcamentos', async (req, res) => {
+  try {
+    const novoOrcamento = new Orcamento({
+      token: req.body.token,
+      cliente: req.body.cliente || '',
+      telefone: req.body.telefone || '',
+      veiculo: req.body.veiculo || '',
+      itens: req.body.itens || [],
+      observacoes: req.body.observacoes || ''
+    });
+    await novoOrcamento.save();
+    const obj = novoOrcamento.toObject();
+    obj.id = obj._id.toString();
+    
+    io.emit('refreshOrcamentos');
+    res.status(201).json(obj);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/orcamentos/:id', async (req, res) => {
+  try {
+    const atualizado = await Orcamento.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!atualizado) return res.status(404).json({ error: 'Orçamento não encontrado' });
+    const obj = atualizado.toObject();
+    obj.id = obj._id.toString();
+    io.emit('refreshOrcamentos');
+    res.json(obj);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/orcamentos/:id', async (req, res) => {
+  try {
+    await Orcamento.findByIdAndDelete(req.params.id);
+    io.emit('refreshOrcamentos');
+    res.json({ message: 'Orçamento removido com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ROTA PÚBLICA PARA ORÇAMENTOS ---
+app.get('/api/orcamentos/public/:token', async (req, res) => {
+  try {
+    const orcamento = await Orcamento.findOne({ token: req.params.token });
+    if (!orcamento) return res.status(404).json({ error: 'Link inválido ou expirado.' });
+    
+    const obj = orcamento.toObject();
+    obj.id = obj._id.toString();
+    res.json(obj);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/orcamentos/public/:token', async (req, res) => {
+  try {
+    const orcamento = await Orcamento.findOne({ token: req.params.token });
+    if (!orcamento) return res.status(404).json({ error: 'Link inválido.' });
+    
+    orcamento.itens = req.body.itens;
+    if (req.body.cliente) orcamento.cliente = req.body.cliente;
+    if (req.body.telefone) orcamento.telefone = req.body.telefone;
+    if (req.body.veiculo) orcamento.veiculo = req.body.veiculo;
+    
+    if (orcamento.status === 'Pendente') {
+      orcamento.status = 'Respondido';
+    }
+    
+    await orcamento.save();
+    io.emit('refreshOrcamentos');
+    res.json({ message: 'Enviado com sucesso!' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
